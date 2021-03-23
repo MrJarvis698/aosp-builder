@@ -24,8 +24,8 @@ tg(){
 	msg=$2                                        # No need to edit
 	curl -s "https://api.telegram.org/bot${bot_api}/sendmessage" --data "text=$msg&chat_id=${your_telegram_id}"
 }
-send_shell=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}') && export send_shell && export SELINUX_IGNORE_NEVERALLOWS=true
-export CCACHE_DIR="$ccachedir" && temp69="CCACHE_EXEC=$(which ccache)" && export temp69 && export USE_CCACHE=1
+export send_shell=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}') && export SELINUX_IGNORE_NEVERALLOWS=true
+export CCACHE_DIR="$ccachedir" && export CCACHE_EXEC=$(which ccache) && export USE_CCACHE=1
 ccache -M "$ccache_size" && ccache -o compression=true && ccache -z                                         
 
 # Normal build steps
