@@ -7,6 +7,7 @@ env: # Environt variable to pass to all tasks
     rclone_config: "ENCRYPTED[738b45446fe77db1cc36ede9e9e6e0b7ac2f29e97bab257ef7423da92dd6686f533e45d50fa8882b7422f771122d7d1f]"
     mybot: "ENCRYPTED[15249f6e81401d3eed6569930d367b12560bebd0e3eaa042df08582439ee676695ec7dc6f922f83dbec2ea729c5c31bf]"
     myid: "ENCRYPTED[1c8db6a342d11315bd67b46da044b4b598c88f008107422e76f74acc0ce4c786c93bb741e7798928dc8c76dfcc577dd3]"
+    apicode: "ENCRYPTED[ab0ad4d630b8a4a6f894f3501e5e279454c88c7d4744e382ea660174305d391a89c36312165635700a69550e87d18b80]"
 
 task:
     name: aosp # Project name
