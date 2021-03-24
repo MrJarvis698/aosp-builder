@@ -24,6 +24,8 @@ tg(){
 	msg=$2                                    # No need to edit
 	curl -s "https://api.telegram.org/bot${bot_api}/sendmessage" --data "text=$msg&chat_id=${your_telegram_id}"
 }
+#rclone
+echo "$rclone_config" > ~/.config/rclone/rclone.conf
 
 #ccache stuff (dont edit)
 export CCACHE_EXEC=$(which ccache) && export USE_CCACHE=1
@@ -56,7 +58,7 @@ fi
 
 # Upload rom zip file if succeed to build! Send notification to tg! And send shell to tg if build fails!
 send_zip=$(up out/target/product/mido/*zip) \
-&& time rclone copy out/target/product/mido/*zip main:VAULT -P \
+&& time for loop in $(ls ./*.zip); do  rclone copy $loop main:VAULT ; done \
 && tg "$id" "Build Succeed! 
 $send_zip" || tmate -S /tmp/tmate.sock new-session -d \
 	&& tmate -S /tmp/tmate.sock wait tmate-ready \
