@@ -1,32 +1,33 @@
 #!/bin/bash
 cd /tmp/rom || exit                               # Depends on where source got synced
-#--------------------------EDIT FROM HERE-------------------------------
-#  EDIT IMP VARIABLES AND COLLECT CCACHE BEFORE BUILD ELSE CI TIMEOUT
 
-export botapi="$mybot"  # add your own bot api                      
+#--------------------------EDIT FROM HERE-------------------------------
+
+export botapi="$mybot"                            # add your own bot api                      
 export id="$myid"                                 # Your telegram id check in sangmatabot@tg
 export build_type="final"                         # for {final} build use final or use {ccache} to collect ccache
-export ccache_size="12G"                          # dont use above 10-15 gb dont abuse system
-export ccachedir="/tmp/ccache"                    # ccache dir dont edit if u dunno what ur doing
+export ccachesize="12G"                           # dont use above 10-15 gb dont abuse system
+export CCACHE_DIR=/tmp/ccache                     # ccache dir dont edit if u dunno what ur doing
 export lunchcommand="lunch aosp_mido-userdebug"   # edit as per stated on manifest
 export buildcommand="make -j10 bacon"             # make command as per manifest
+export SELINUX_IGNORE_NEVERALLOWS=true            # remove if you dont need it 
 
 #--------------------------EDIT UPTO HERE-------------------------------
 
-#env variables & functions
+#functions (dont edit)
 up(){
 	curl --upload-file "$1" https://transfer.sh/"$(basename "$1")"; echo
 }                                                 # 14 days, 10 GB limit
-
 tg(){
-	bot_api="$botapi"                              # Your tg bot api, dont use my one haha
-	your_telegram_id=$1                           # No need to edit
-	msg=$2                                        # No need to edit
+	bot_api="$botapi"                         
+	your_telegram_id=$1                       # No need to edit
+	msg=$2                                    # No need to edit
 	curl -s "https://api.telegram.org/bot${bot_api}/sendmessage" --data "text=$msg&chat_id=${your_telegram_id}"
 }
-export send_shell=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}') && export SELINUX_IGNORE_NEVERALLOWS=true
-export CCACHE_DIR="$ccachedir" && export CCACHE_EXEC=$(which ccache) && export USE_CCACHE=1
-ccache -M "$ccache_size" && ccache -o compression=true && ccache -z                                         
+
+#ccache stuff (dont edit)
+export CCACHE_EXEC=$(which ccache) && export USE_CCACHE=1
+ccache -M "$ccachesize" && ccache -o compression=true && ccache -z                                         
 
 # Normal build steps
 source ./build/envsetup.sh                        #env setup command
@@ -50,14 +51,15 @@ if [[ "$build_type" = "final" ]]; then
     make hiddenapi-lists-docs || echo no problem
     make system-api-stubs-docs || echo no problem
     make test-api-stubs-docs || echo no problem
-    eval "$buildcommand"                          #use build command as on manifest
+    eval "$buildcommand"
 fi
 
 # Upload rom zip file if succeed to build! Send notification to tg! And send shell to tg if build fails!
 send_zip=$(up out/target/product/mido/*zip) \
 && time rclone copy out/target/product/mido/*zip main:VAULT -P \
-&& tg "$id" "Build Succeed! $send_zip" \
-	|| tmate -S /tmp/tmate.sock new-session -d \
+&& tg "$id" "Build Succeed! 
+$send_zip" || tmate -S /tmp/tmate.sock new-session -d \
 	&& tmate -S /tmp/tmate.sock wait tmate-ready \
+	&& send_shell=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}') \
 	&& tg "$id" "Build Failed!" && tg "$id" "$send_shell" \
 	&& ccache -s && sleep 2h
