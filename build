@@ -3,6 +3,7 @@ cd /tmp/rom || exit                               # Depends on where source got 
 
 #--------------------------EDIT FROM HERE-------------------------------
 
+
 export botapi="$mybot"                            # add your own bot api                      
 export id="$myid"                                 # Your telegram id check in sangmatabot@tg
 export build_type="ccache"                        # for {final} build use final or use {ccache} to collect ccache
