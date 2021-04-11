@@ -1,7 +1,7 @@
 #!/bin/bash
 cd /tmp/rom || exit                               # Depends on where source got synced
 
-#--------------------------EDIT FROM HERE-------------------------------
+#--------------------------EDIT FROM HERE--------------------------------
 
 
 export botapi="$mybot"                            # add your own bot api                      
@@ -13,7 +13,7 @@ export lunchcommand="lunch spark_mido-userdebug"   # edit as per stated on manif
 export buildcommand="mka spark -j$(nproc --all)"   # make command as per manifest
 #export SELINUX_IGNORE_NEVERALLOWS=true            # remove if you dont need it 
 
-#--------------------------EDIT UPTO HERE-------------------------------
+#--------------------------EDIT UPTO HERE--------------------------------
 
 #functions (dont edit)
 up(){
