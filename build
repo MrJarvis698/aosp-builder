@@ -10,7 +10,7 @@ export build_type="final"                        # for {final} build use final o
 export ccachesize="12G"                           # dont use above 10-15 gb dont abuse system
 export CCACHE_DIR=/tmp/ccache                     # ccache dir dont edit if u dunno what ur doing
 export lunchcommand="lunch aosp_mido-user"   # edit as per stated on manifest
-export buildcommand="mka aex -j$(nproc --all)"   # make command as per manifest
+export buildcommand="make aex -j$(nproc --all)"   # make command as per manifest
 #export SELINUX_IGNORE_NEVERALLOWS=true            # remove if you dont need it 
 
 #--------------------------EDIT UPTO HERE--------------------------------
