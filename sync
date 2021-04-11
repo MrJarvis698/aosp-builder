@@ -17,4 +17,4 @@ repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync 
 
 #clone device repos
 rm -rf device/xiaomi/mido
-git clone https://github.com/ramdibaaz/MIDO_D3 -b r11 device/xiaomi/mido
+git clone https://github.com/jrchintu/aex -b debloat device/xiaomi/mido
