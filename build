@@ -57,7 +57,7 @@ fi
 
 # Upload rom zip file if succeed to build! Send notification to tg! And send shell to tg if build fails!
 time for loop in out/target/product/mido/*.zip; do [[ -e "$loop" ]] || break; echo "$loop" && rclone copy "$loop" main:VAULT; done \
-&& tg "$id" "Build Succeed! || tmate -S /tmp/tmate.sock new-session -d \
+&& tg "$id" "Build Succeed!" || tmate -S /tmp/tmate.sock new-session -d \
 	&& tmate -S /tmp/tmate.sock wait tmate-ready \
 	&& send_shell=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}') \
 	&& tg "$id" "Build Failed!" && tg "$id" "$send_shell" \
