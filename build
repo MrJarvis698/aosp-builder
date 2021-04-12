@@ -2,8 +2,6 @@
 cd /tmp/rom || exit                               # Depends on where source got synced
 
 #--------------------------EDIT FROM HERE--------------------------------
-
-
 export botapi="$mybot"                            # add your own bot api                      
 export id="$myid"                                 # Your telegram id check in sangmatabot@tg
 export build_type="final"                        # for {final} build use final or use {ccache} to collect ccache
@@ -12,7 +10,6 @@ export CCACHE_DIR=/tmp/ccache                     # ccache dir dont edit if u du
 export lunchcommand="lunch aosp_mido-user"   # edit as per stated on manifest
 export buildcommand="make aex -j$(nproc --all)"   # make command as per manifest
 #export SELINUX_IGNORE_NEVERALLOWS=true            # remove if you dont need it 
-
 #--------------------------EDIT UPTO HERE--------------------------------
 
 #functions (dont edit)
@@ -59,10 +56,8 @@ if [[ "$build_type" = "final" ]]; then
 fi
 
 # Upload rom zip file if succeed to build! Send notification to tg! And send shell to tg if build fails!
-send_zip=$(up out/target/product/mido/*zip) \
-&& time for loop in *.zip; do [[ -e "$loop" ]] || break; echo "$loop" && rclone copy "$loop" main:VAULT; done \
-&& tg "$id" "Build Succeed! 
-$send_zip" || tmate -S /tmp/tmate.sock new-session -d \
+time for loop in out/target/product/mido/*.zip; do [[ -e "$loop" ]] || break; echo "$loop" && rclone copy "$loop" main:VAULT; done \
+&& tg "$id" "Build Succeed! || tmate -S /tmp/tmate.sock new-session -d \
 	&& tmate -S /tmp/tmate.sock wait tmate-ready \
 	&& send_shell=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}') \
 	&& tg "$id" "Build Failed!" && tg "$id" "$send_shell" \
