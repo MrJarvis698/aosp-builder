@@ -5,7 +5,7 @@ cd /tmp/rom || exit                               # Depends on where source got 
 export botapi="$mybot"                            # add your own bot api                      
 export id="$myid"                                 # Your telegram id check in sangmatabot@tg
 export build_type="final"                        # for {final} build use final or use {ccache} to collect ccache
-export ccachesize="12G"                           # dont use above 10-15 gb dont abuse system
+export ccachesize="20G"                           # dont use above 10-20 gb dont abuse system
 export CCACHE_DIR=/tmp/ccache                     # ccache dir dont edit if u dunno what ur doing
 export lunchcommand="lunch aosp_mido-user"   # edit as per stated on manifest
 export buildcommand="make aex -j$(nproc --all)"   # make command as per manifest
