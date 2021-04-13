@@ -40,14 +40,14 @@ unset TMUX && tmate -S /tmp/tmate.sock new-session -d && tmate -S /tmp/tmate.soc
 
 if [[ "$build_type" = "ccache" ]]; then
     eval "$buildcommand" && tg "Build Succeed!" && for loop in out/target/product/mido/*zip; do
-        [[ -e "$loop" ]] || tg no-zip-found
+        [[ -e "$loop" ]] || tg "no-zip-found"
         rclone copy "$loop" main:ROM
     done ||
         tg "Build Failed!" && tg "$send_shell" &&
         sleep 85m && kill %1
 elif [[ "$build_type" = "final" ]]; then
     eval "$buildcommand" && tg "Build Succeed!" && for loop in out/target/product/mido/*zip; do
-        [[ -e "$loop" ]] || tg no-zip-found
+        [[ -e "$loop" ]] || tg "no-zip-found"
         rclone copy "$loop" main:ROM
     done ||
         tg "Build Failed!" && tg "$send_shell" &&
