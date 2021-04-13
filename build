@@ -1,57 +1,53 @@
 #!/bin/bash
-cd /tmp/rom || exit                               # Depends on where source got synced
+cd /tmp/rom || exit # Depends on where source got synced
 
 #--------------------------EDIT FROM HERE--------------------------------
-export botapi="$mybot"                            # add your own bot api                      
-export id="$myid"                                 # Your telegram id check in sangmatabot@tg
-export build_type="final"                         # for {final} build use final or use {ccache} to collect ccache
-export ccachesize="20G"                           # dont use above 10-20 gb dont abuse system
-export CCACHE_DIR=/tmp/ccache                     # ccache dir dont edit if u dunno what ur doing
-export lunchcommand="lunch aosp_mido-user"        # edit as per stated on manifest
-export buildcommand="make aex -j$(nproc --all)"   # make command as per manifest
-#export SELINUX_IGNORE_NEVERALLOWS=true           # remove if you dont need it 
+export botapi="$mybot"                     # add your own bot api
+export id="$myid"                          # Your telegram id check in sangmatabot@tg
+export build_type="final"                  # for {final} build use final or use {ccache} to collect ccache
+export ccachesize="20G"                    # dont use above 10-20 gb dont abuse system
+export CCACHE_DIR=/tmp/ccache              # ccache dir dont edit if u dunno what ur doing
+export lunchcommand="lunch aosp_mido-user" # edit as per stated on manifest
+export buildcommand="make aex -j8"         # make command as per manifest
+#export SELINUX_IGNORE_NEVERALLOWS=true           # remove if you dont need it
 #--------------------------EDIT UPTO HERE--------------------------------
 
 #functions (dont edit)
-up(){
-	curl --upload-file "$1" https://transfer.sh/"$(basename "$1")"; echo
-}                                                 # 14 days, 10 GB limit
-tg(){
-	bot_api="$botapi"                         
-	your_telegram_id=$1                       # No need to edit
-	msg=$2                                    # No need to edit
-	curl -s "https://api.telegram.org/bot${bot_api}/sendmessage" --data "text=$msg&chat_id=${your_telegram_id}"
+tg() {
+    msg=$1 # No need to edit
+    curl -s "https://api.telegram.org/bot${botapi}/sendmessage" --data "text=$msg&chat_id=${id}"
 }
+send_shell=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}')
+
 #rclone
 mkdir -p ~/.config/rclone
-echo "$rclone_config" > ~/.config/rclone/rclone.conf
+echo "$rclone_config" >~/.config/rclone/rclone.conf
 
 #ccache stuff (dont edit)
 export CCACHE_EXEC=$(which ccache) && export USE_CCACHE=1
-ccache -M "$ccachesize" && ccache -o compression=true && ccache -z                                         
+ccache -M "$ccachesize" && ccache -o compression=true && ccache -z
 
 # Normal build steps
-source ./build/envsetup.sh                        #env setup command
-eval "$lunchcommand"                              #lunch command
+source ./build/envsetup.sh
+eval "$lunchcommand"
+make api-stubs-docs || echo no problem
+make hiddenapi-lists-docs || echo no problem
+make system-api-stubs-docs || echo no problem
+make test-api-stubs-docs || echo no problem
+unset TMUX && tmate -S /tmp/tmate.sock new-session -d && tmate -S /tmp/tmate.sock wait tmate-ready
+
 if [[ "$build_type" = "ccache" ]]; then
-    make api-stubs-docs || echo no problem
-    make hiddenapi-lists-docs || echo no problem
-    make system-api-stubs-docs || echo no problem
-    make test-api-stubs-docs || echo no problem
-    eval "$buildcommand" && tg "$id" "Build Succeed!" && for loop in *zip; do [[ -e "$loop" ]] || echo nozipfound; rclone copy "$loop" main:ROM; done || tmate -S /tmp/tmate.sock new-session -d \
-	     && tmate -S /tmp/tmate.sock wait tmate-ready \
-	     && send_shell=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}') \
- 	     && tg "$id" "Build Failed!" && tg "$id" "$send_shell"
-    sleep 85m
-    kill %1
+    eval "$buildcommand" && tg "Build Succeed!" && for loop in out/target/product/mido/*zip; do
+        [[ -e "$loop" ]] || tg no-zip-found
+        rclone copy "$loop" main:ROM
+    done ||
+        tg "Build Failed!" && tg "$send_shell" &&
+        sleep 85m && kill %1
 elif [[ "$build_type" = "final" ]]; then
-    make api-stubs-docs || echo no problem
-    make hiddenapi-lists-docs || echo no problem
-    make system-api-stubs-docs || echo no problem
-    make test-api-stubs-docs || echo no problem
-    eval "$buildcommand" && tg "$id" "Build Succeed!" && for loop in *zip; do [[ -e "$loop" ]] || th "$id" no-zip-found; rclone copy "$loop" main:ROM; done || tmate -S /tmp/tmate.sock new-session -d \
-	     && tmate -S /tmp/tmate.sock wait tmate-ready \
-	     && send_shell=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}') \
- 	     && tg "$id" "Build Failed!" && tg "$id" "$send_shell" \
- 	     && sleep 2h
+    eval "$buildcommand" && tg "Build Succeed!" && for loop in out/target/product/mido/*zip; do
+        [[ -e "$loop" ]] || tg no-zip-found
+        rclone copy "$loop" main:ROM
+    done ||
+        tg "Build Failed!" && tg "$send_shell" &&
+        sleep 2h
 fi
