@@ -30,10 +30,12 @@ ccache -M "$ccachesize" && ccache -o compression=true && ccache -z
 # Normal build steps
 source ./build/envsetup.sh
 eval "$lunchcommand"
-make api-stubs-docs || echo no problem
-make hiddenapi-lists-docs || echo no problem
-make system-api-stubs-docs || echo no problem
-make test-api-stubs-docs || echo no problem
+if [[ "$build_type" = "ccache" ]]; then
+    make api-stubs-docs || echo no problem
+    make hiddenapi-lists-docs || echo no problem
+    make system-api-stubs-docs || echo no problem
+    make test-api-stubs-docs || echo no problem
+fi
 unset TMUX && tmate -S /tmp/tmate.sock new-session -d && tmate -S /tmp/tmate.sock wait tmate-ready
 
 if [[ "$build_type" = "ccache" ]]; then
