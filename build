@@ -4,12 +4,12 @@ cd /tmp/rom || exit                               # Depends on where source got 
 #--------------------------EDIT FROM HERE--------------------------------
 export botapi="$mybot"                            # add your own bot api                      
 export id="$myid"                                 # Your telegram id check in sangmatabot@tg
-export build_type="final"                        # for {final} build use final or use {ccache} to collect ccache
+export build_type="final"                         # for {final} build use final or use {ccache} to collect ccache
 export ccachesize="20G"                           # dont use above 10-20 gb dont abuse system
 export CCACHE_DIR=/tmp/ccache                     # ccache dir dont edit if u dunno what ur doing
-export lunchcommand="lunch aosp_mido-user"   # edit as per stated on manifest
+export lunchcommand="lunch aosp_mido-user"        # edit as per stated on manifest
 export buildcommand="make aex -j$(nproc --all)"   # make command as per manifest
-#export SELINUX_IGNORE_NEVERALLOWS=true            # remove if you dont need it 
+#export SELINUX_IGNORE_NEVERALLOWS=true           # remove if you dont need it 
 #--------------------------EDIT UPTO HERE--------------------------------
 
 #functions (dont edit)
@@ -33,32 +33,25 @@ ccache -M "$ccachesize" && ccache -o compression=true && ccache -z
 # Normal build steps
 source ./build/envsetup.sh                        #env setup command
 eval "$lunchcommand"                              #lunch command
-
-# Next 8 lines should be run first to collect ccache and then upload, collect 6.5 gb in 2-3 time
 if [[ "$build_type" = "ccache" ]]; then
     make api-stubs-docs || echo no problem
     make hiddenapi-lists-docs || echo no problem
     make system-api-stubs-docs || echo no problem
     make test-api-stubs-docs || echo no problem
-    eval "$buildcommand"                          #use build command as on manifest
-    sleep 85m                                     #Lets give some space for uploading ccache
-    kill %1                                       #better way to kill it!
-    ccache -s
-fi
-
-# Let's compile by parts! Coz of ram issue j10 for 10 cpu, j8 for 8 cpu, otherwise memeroy will end up even its 24G
-if [[ "$build_type" = "final" ]]; then
+    eval "$buildcommand" && tg "$id" "Build Succeed!" && for loop in *zip; do [[ -e "$loop" ]] || echo nozipfound; rclone copy "$loop" main:ROM; done || tmate -S /tmp/tmate.sock new-session -d \
+	     && tmate -S /tmp/tmate.sock wait tmate-ready \
+	     && send_shell=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}') \
+ 	     && tg "$id" "Build Failed!" && tg "$id" "$send_shell"
+    sleep 85m
+    kill %1
+elif [[ "$build_type" = "final" ]]; then
     make api-stubs-docs || echo no problem
     make hiddenapi-lists-docs || echo no problem
     make system-api-stubs-docs || echo no problem
     make test-api-stubs-docs || echo no problem
-    eval "$buildcommand"
+    eval "$buildcommand" && tg "$id" "Build Succeed!" && for loop in *zip; do [[ -e "$loop" ]] || th "$id" no-zip-found; rclone copy "$loop" main:ROM; done || tmate -S /tmp/tmate.sock new-session -d \
+	     && tmate -S /tmp/tmate.sock wait tmate-ready \
+	     && send_shell=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}') \
+ 	     && tg "$id" "Build Failed!" && tg "$id" "$send_shell" \
+ 	     && sleep 2h
 fi
-
-# Upload rom zip file if succeed to build! Send notification to tg! And send shell to tg if build fails!
-time for loop in out/target/product/mido/*.zip; do [[ -e "$loop" ]] || break; echo "$loop" && rclone copy "$loop" main:VAULT; done \
-&& tg "$id" "Build Succeed!" || tmate -S /tmp/tmate.sock new-session -d \
-	&& tmate -S /tmp/tmate.sock wait tmate-ready \
-	&& send_shell=$(tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}') \
-	&& tg "$id" "Build Failed!" && tg "$id" "$send_shell" \
-	&& ccache -s && sleep 2h
