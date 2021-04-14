@@ -64,7 +64,15 @@ if [[ "$BUILD_TYPE" = "ccache" ]]; then
     make system-api-stubs-docs || echo no problem
     make test-api-stubs-docs || echo no problem
 fi
-eval "$BUILDCOMMAND" | tee "${ERROR_LOG1}"
+eval "$BUILDCOMMAND" | tee "${ERROR_LOG1}" &
+# Build Progress
+sleep 180
+while test ! -z "$(pidof soong_ui)"; do
+	sleep 180
+        # Print build percentage
+        build_percentage=$(cat ${ERROR_LOG1} | tail -n 1 | awk '{ print $2 }')
+        tg "Build Percentage - ${build_percentage}"
+done
 
 if [[ "$BUILD_TYPE" = "ccache" ]]; then
     if ls out/target/product/mido/*zip 1>/dev/null 2>&1; then
